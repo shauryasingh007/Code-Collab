@@ -1,0 +1,320 @@
+// components/chat/ChatSection.jsx
+import { useState, useEffect, useRef } from 'react';
+import { Box, Typography, TextField, Button, IconButton, Paper, Avatar,Badge,Tooltip } from '@mui/material';
+import { Send, AttachFile, Close } from '@mui/icons-material';
+import { useParams } from 'react-router-dom';
+import Message from './Message.jsx';
+import axios from 'axios';
+import { io } from 'socket.io-client';
+
+// const socket = io(import.meta.env.VITE_SERVER_URL, {
+//   autoConnect: false,
+//   withCredentials: true,
+// });
+
+export default function ChatSection({ roomId, username, totalUsers, socket }) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const messagesEndRef = useRef(null);
+  const [file, setFile] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    
+    if(socket){
+      socket.connect();
+      console.log("C1 - Socket in chat section");
+      const fetchMessages = async () => {
+        try {
+          const messagesRes = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/messages/${roomId}`, { 
+            withCredentials: true 
+          });
+          const formattedMsgs = messagesRes.data.map(msg => ({
+            sender: msg.sender.username,
+            content: msg.content,
+            fileUrl: msg.fileUrl, 
+            timeStamp: msg.timeStamp,
+          }));
+        setMessages(formattedMsgs);
+      } catch (err) {
+        console.error('Failed to fetch messages:', err);
+      }
+    };
+    fetchMessages();
+
+    socket.on('receive-message', (message) => {
+      setMessages((prev) => [...prev, message]);
+    });
+
+
+    return () => {
+      socket.off('receive-message');
+      socket.disconnect();
+    };
+  }
+  }, [roomId, username]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  const handleFileChange = (e) => {
+    if (!e.target.files[0]) return;
+    setFile(e.target.files[0]);
+  };
+
+  const sendMessage = () => {
+    if (!newMessage.trim() && !file) return;
+    if (!socket || !socket.connected) {console.log("No socket connection in chat-component"); return;}
+
+    const formData = new FormData();
+    formData.append('sendername', username);
+    formData.append('content', newMessage); // Include text content always
+    formData.append('roomId', roomId);
+    formData.append('timeStamp', new Date().toISOString());
+
+    if (file) {
+      formData.append('file', file); // Include file if present
+    }
+
+    axios.post(`${import.meta.env.VITE_SERVER_URL}/api/messages/save`, formData, {withCredentials: true})
+      .catch((err)=>{
+        console.error('Message send error:', err);
+      });
+
+    setNewMessage('');
+    setFile(null);
+  };
+
+  return (
+    <Paper sx={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0, backgroundColor: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.05)', color: '#e0e0e0', borderRadius: '12px', overflow: 'hidden'}} elevation={0}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', backgroundColor: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.08)'}}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h6" sx={{ 
+            fontWeight: 600,
+            background: 'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>
+            Team Chat
+          </Typography>
+          <Badge
+            overlap="circular"
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            badgeContent={
+              <Box sx={{
+                backgroundColor: '#4caf50',
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                border: '2px solid #1e1e1e'
+              }} />
+            }
+          >
+            <Avatar sx={{ 
+              width: 32, 
+              height: 32,
+              bgcolor: '#3a7bd5',
+              fontSize: '0.875rem'
+            }}>
+              {username.charAt(0).toUpperCase()}
+            </Avatar>
+          </Badge>
+        </Box>
+        <Typography variant="body2" sx={{ color: '#a0a0a0'}}>
+          {totalUsers} {totalUsers === 1 ? 'member' : 'members'} in total
+        </Typography>
+      </Box>
+
+      {/* Messages container */}
+      <Box 
+        sx={{ flex: 1, overflowY: 'auto', padding: '16px',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#1e1e1e',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#3a3a3a',
+            borderRadius: '4px',
+            '&:hover': {
+              background: 'rgba(255,255,255,0.2)',
+            }
+          },
+          background: 'transparent',
+        }} 
+      >
+        {messages.map((msg, index) => (
+          <Box
+            key={index}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: username === msg.sender ? 'flex-end' : 'flex-start',
+              mb: 2,
+            }}
+          >
+            <Message
+              sendername={msg.sender}
+              content={msg.content}
+              timeStamp={msg.timeStamp}
+              fileUrl={msg.fileUrl}
+              isSender={username === msg.sender}
+            />
+          </Box>
+        ))}
+        {isTyping && (
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            mb: 2,
+            padding: '8px 12px',
+            backgroundColor: '#252525',
+            borderRadius: '18px',
+            width: 'fit-content',
+          }}>
+            <Box sx={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#a0a0a0',
+              animation: 'pulse 1.5s infinite ease-in-out',
+              '@keyframes pulse': {
+                '0%, 100%': { opacity: 0.3, transform: 'translateY(0)' },
+                '50%': { opacity: 1, transform: 'translateY(-5px)' },
+              },
+              '&:nth-of-type(1)': { animationDelay: '0s' },
+              '&:nth-of-type(2)': { animationDelay: '0.3s' },
+              '&:nth-of-type(3)': { animationDelay: '0.6s' },
+            }} />
+            <Box sx={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#a0a0a0',
+            }} />
+            <Box sx={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#a0a0a0',
+            }} />
+          </Box>
+        )}
+        <div ref={messagesEndRef} />
+      </Box>
+
+      {/* Input area */}
+      <Box sx={{ padding: '16px',backgroundColor: 'rgba(0,0,0,0.3)',borderTop: '1px solid rgba(255,255,255,0.08)'}}>
+        {file && (
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 1,
+            padding: '8px 12px',
+            backgroundColor: '#252525',
+            borderRadius: '4px',
+          }}>
+            <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+              {file.name}
+            </Typography>
+            <IconButton 
+              size="small" 
+              onClick={() => setFile(null)}
+              sx={{ color: '#a0a0a0' }}
+            >
+              <Close fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Attach file">
+            <IconButton 
+              component="label"
+              sx={{ 
+                color: '#a0a0a0',
+                '&:hover': {
+                  backgroundColor: '#2a2a2a',
+                  color: '#ffffff',
+                }
+              }}
+            >
+              <AttachFile />
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+                accept="image/*,audio/*,video/*"
+              />
+            </IconButton>
+          </Tooltip>
+          <TextField
+            fullWidth
+            variant="outlined"
+            size="small"
+            value={newMessage}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTyping();
+            }}
+            placeholder="Type a message..."
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+            multiline
+            maxRows={4}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                borderRadius: '24px',
+                '& fieldset': {
+                  borderColor: 'rgba(255,255,255,0.1)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(255,255,255,0.3)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#8b5cf6',
+                },
+              },
+              '& .MuiInputBase-input': {
+                color: '#e0e0e0',
+                padding: '12px 16px',
+              },
+            }}
+          />
+          <Button 
+            variant="contained" 
+            onClick={sendMessage}
+            disabled={!newMessage.trim() && !file}
+            sx={{
+              minWidth: 'auto',
+              padding: '8px 16px',
+              borderRadius: '24px',
+              background: 'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)',
+              color: '#ffffff',
+              border: 'none',
+              '&:hover': {
+                opacity: 0.9,
+              },
+              '&:disabled': {
+                background: 'rgba(255,255,255,0.1)',
+                color: '#606060',
+              }
+            }}
+          >
+            <Send fontSize="small" />
+          </Button>
+        </Box>
+      </Box>
+    </Paper>
+  );
+}

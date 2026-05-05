@@ -1,0 +1,50 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LandingPage from './Pages/LandingPage.jsx';
+import Home from './Pages/Home.jsx';
+import Login from './Pages/Auth/Login.jsx';
+import Register from './Pages/Auth/Register.jsx';
+import RoomPage from './Pages/RoomPage.jsx'; 
+import ResetUserPass from './Pages/Auth/ResetUserPass.jsx';
+import { useAuth } from './context/AuthContext.jsx';
+import './App.css';
+import { CircularProgress, Box } from '@mui/material'; // Import loading indicator
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
+function App() {
+    const { isAuthenticated, loading } = useAuth();
+
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh',
+                    background: 'linear-gradient(to right, #000000, #1a1a1a)',
+                }}
+            >
+                <CircularProgress color="secondary" />
+            </Box>
+        );
+    }
+
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
+                <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+                <Route path="/reset-password" element={<ResetUserPass />} />
+                <Route path="/room/:roomId" element={isAuthenticated ? <RoomPage /> : <Navigate to="/login" />} />
+                <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+            <ToastContainer />
+        </Router>
+    
+    );
+}
+
+export default App;
