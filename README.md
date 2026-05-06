@@ -35,7 +35,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Ashish-Redhu/CodeCollab
+   git clone https://github.com/shauryasingh007/Code-Collab
    cd CodeCollab
    ```
 2. **Install Dependencies**
@@ -84,9 +84,16 @@ EMAIL_USER=your_email@domain.com
 EMAIL_PASS=your_email_password
 ```
 
+3.vii) **Jdoodle**
+```
+JDOODLE_CLIENT_ID=your_jdoodle_client_id
+JDOODLE_CLIENT_SECRET=your_jdoodle_client_secret
+```
+
+
 
 ## 📁 Folder Structure 
-CodeCollab/ <br>
+Code-Collab/ <br>
 ├── client/&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Frontend code <br>
 │   ├── public/&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# Static assets<br>
 │   ├── src/&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# Source code<br>
@@ -118,15 +125,15 @@ CodeCollab/ <br>
 
 | Code Editor | Landing Page |
 |-------------|--------------|
-| ![Chat](./pictures/RoomPage_Chat.png)  | ![LandingPage](./pictures/LandingPage.png) |
+| ![Chat](./pictures/CodeEditorPython.png)  | ![LandingPage](./pictures/Workflow.png) |
 | Login Page  | Code Editor  |
-| ![Login](./pictures/LoginPage.png)  | ![Coding](./pictures/RoomPage_Coding.png) |
+| ![Login](./pictures/JoinRoom.png)  | ![Coding](./pictures/CodeEditorDetails.png) |
 
 <br/>
 
 ## 🙋‍♂️ Author
-**Ashish Redhu** <br>
-[🔗 LinkedIn](https://www.linkedin.com/in/ashish-redhu/)  
-[</> LeetCode](https://leetcode.com/u/AshishRedhu/)  
-[🌐 GitHub](https://github.com/Ashish-Redhu)
+**Shaurya Singh** <br>
+[🔗 LinkedIn](https://www.linkedin.com/in/shauryasingh007/)  
+[</> LeetCode] 
+[🌐 GitHub](https://github.com/shauryasingh007)
 
